@@ -73,14 +73,44 @@ for scrolling_interval in range(0, len(temp_jobs), 2):
 time.sleep(2)
 jobs = driver.find_elements(By.CSS_SELECTOR, "ul.scaffold-layout__list-container  li.jobs-search-results__list-item a")
 pagination_buttons = driver.find_elements(By.CSS_SELECTOR, ".artdeco-pagination__pages button")
-if len(pagination_buttons) > 1:
-    pagination_buttons.pop(0) # do not need to click on the 1st page since its already accessible
+
 print(f"Len: {pagination_buttons}")
 
 href_links = []
 print("hellos!")
-i = 1
-while True:
+num_pages = len(pagination_buttons)
+print(num_pages)
+for i in range(1, num_pages+1):
+    if i != 1:
+        time.sleep(5)
+        temp_jobs = driver.find_elements(By.CSS_SELECTOR, "ul.scaffold-layout__list-container  li.jobs-search-results__list-item")
+        for scrolling_interval in range(0, len(temp_jobs), 2):
+            driver.execute_script("arguments[0].scrollIntoView();", temp_jobs[scrolling_interval])
+
+        time.sleep(2)
+        jobs = driver.find_elements(By.CSS_SELECTOR, "ul.scaffold-layout__list-container  li.jobs-search-results__list-item a")
+        print(len(jobs))
+
+    for job in jobs:
+        if ("senior" not in job.text) and ("Senior" not in job.text):
+            job.click()
+            time.sleep(2)
+            save_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '.jobs-save-button'))
+            ).click()
+            time.sleep(2)
+            follow_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button.follow"))
+            ).click()
+    if i == num_pages:
+        print(i, num_pages)
+        break      
+    time.sleep(3)     
+    wait = WebDriverWait(driver, 10)
+    element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f"button[aria-label='Page {i+1}']")))
+    element.click()
+
+while False:
     if i != 1:
         time.sleep(5)
         temp_jobs = driver.find_elements(By.CSS_SELECTOR, "ul.scaffold-layout__list-container  li.jobs-search-results__list-item")
