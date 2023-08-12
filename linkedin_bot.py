@@ -21,8 +21,6 @@ class LinkedInAutoBot:
         self.driver.maximize_window()
         self.driver.implicitly_wait(15)
         self.login(self.driver)
-        self.search(self.driver)
-        self.apply_to_jobs(self.driver)
         print("Terminating the program... Bye!")
 
     def login(self, driver):
@@ -44,18 +42,19 @@ class LinkedInAutoBot:
             email = input("Please provide your email: ")
             password = getpass("Please provide your password: ")
             hidden_password = ""
-            # Display the masked password obly showing the first and last character, the rest of the password hidden with '*'
+            # Display the masked password only showing the first and last character, the rest of the password hidden with '*'
             for i, letter in enumerate(password):
                 if i == len(password)-1 or i==0:
                     hidden_password += letter
                 else:
                     hidden_password += "*"
 
-            # Ask user to cofirm their login details
-            confirm = input(f"""E-mail: {email}
-            Password: {hidden_password} ({len(password)} characters)
-            \nAre these credentials correct (yes/no) ? 
-            """)[0].lower()
+            # Ask user to confirm their login details
+            confirm = input(f"""
+E-mail: {email}
+Password: {hidden_password} ({len(password)} characters)
+\nAre these credentials correct (yes/no) ? 
+""")[0].lower()
             if confirm == "y":
                 break
         # Send details and repeat this if something went wrong
@@ -64,20 +63,33 @@ class LinkedInAutoBot:
                 email_entry.send_keys(email)
                 password_entry.send_keys(password)
                 button.click()
+                time.sleep(3)
             except:
                 pass
             else:
                 break
+         # Check if the login is succesfull. If not, repeat typing login form from the home-page
+        if driver.current_url == "https://www.linkedin.com/uas/login-submit":
+            self.login(driver)
+        else:
+            self.search(driver)
     
     def search(self, driver):
-        job_description = input("Provide your key-search for your dream job: ")
-        search = driver.find_element(By.CSS_SELECTOR, "input.search-global-typeahead__input").send_keys(job_description + Keys.ENTER)
+        while True:
+            try:
+                job_description = input("Provide your key-search for your dream job: ")
+                search = driver.find_element(By.CSS_SELECTOR, "input.search-global-typeahead__input").send_keys(job_description + Keys.ENTER)
 
-        all_jobs = WebDriverWait(driver, 15).until(
-                    EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "See all job results"))
-        ).click()
-        time.sleep(1)
-    
+                all_jobs = WebDriverWait(driver, 15).until(
+                            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "See all job results"))
+                ).click()
+                time.sleep(3)
+            except:
+                pass
+            else:
+                break
+        self.apply_to_jobs(driver)
+        
     def apply_to_jobs(self, driver):
         def scroll_down():
             time.sleep(2)
@@ -103,11 +115,11 @@ class LinkedInAutoBot:
                 # Not interested in senior posts therefore exclude them
                 if ("senior" not in job.text) and ("Senior" not in job.text):
                     job.click()
-                    time.sleep(2)
+                    # time.sleep(2)
                     save_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.CSS_SELECTOR, '.jobs-save-button'))
                     ).click()
-                    time.sleep(2)
+                    # time.sleep(2)
                     follow_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.CSS_SELECTOR, "button.follow"))
                     ).click()
@@ -123,5 +135,3 @@ class LinkedInAutoBot:
             element.click()
 
 LinkedInAutoBot()
-
-
